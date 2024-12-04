@@ -17,9 +17,16 @@ const FoodGallery = dynamic(() => import('@/components/FoodGallery'), {
   ssr: false
 });
 
+interface MenuItem {
+  id: number;
+  name: string;
+  demand: number;
+  photo?: string;
+}
+
 interface PageContent {
   title: string;
-  menuItems: any[];
+  menuItems: MenuItem[];
   cafeNews: string[];
   date: string;
   lastUpdated: string;

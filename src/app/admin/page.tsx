@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { getPageContent } from '@/utils/content';
 
 interface MenuItem {
@@ -59,7 +58,6 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [newMenuItem, setNewMenuItem] = useState('');
   const [newNewsItem, setNewNewsItem] = useState('');
-  const router = useRouter();
 
   useEffect(() => {
     const savedContent = getPageContent();
@@ -84,8 +82,8 @@ export default function AdminPage() {
       } else {
         setError('Invalid password');
       }
-    } catch (err) {
-      setError('An error occurred');
+    } catch (error) {
+      setError('An error occurred: ' + (error as Error).message);
     }
   };
 
