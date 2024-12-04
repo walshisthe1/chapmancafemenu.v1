@@ -21,10 +21,22 @@ export default function Home() {
   const [content, setContent] = useState<any>(null);
 
   useEffect(() => {
-    const pageContent = getPageContent();
-    if (pageContent) {
-      setContent(pageContent);
-    }
+    // Initial load
+    const loadContent = () => {
+      const pageContent = getPageContent();
+      if (pageContent) {
+        setContent(pageContent);
+      }
+    };
+
+    // Load content immediately
+    loadContent();
+
+    // Set up interval to check for updates every 30 seconds
+    const interval = setInterval(loadContent, 30000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
   }, []);
 
   return (
