@@ -5,16 +5,20 @@ import { getPageContent } from '@/utils/content';
 import dynamic from 'next/dynamic';
 
 const CafeteriaMenu = dynamic(() => import('@/components/CafeteriaMenu'), {
-  ssr: false
+  ssr: false,
+  loading: () => <div>Loading menu...</div>
 });
 const CafeNews = dynamic(() => import('@/components/CafeNews'), {
-  ssr: false
+  ssr: false,
+  loading: () => <div>Loading news...</div>
 });
 const IceCreamStatus = dynamic(() => import('@/components/IceCreamStatus'), {
-  ssr: false
+  ssr: false,
+  loading: () => <div>Loading status...</div>
 });
 const FoodGallery = dynamic(() => import('@/components/FoodGallery'), {
-  ssr: false
+  ssr: false,
+  loading: () => <div>Loading gallery...</div>
 });
 
 export default function Home() {
@@ -22,34 +26,22 @@ export default function Home() {
   const [lastUpdate, setLastUpdate] = useState(Date.now());
 
   useEffect(() => {
-    // Function to fetch content
+    let isSubscribed = true;
+
     const loadContent = async () => {
       const pageContent = getPageContent();
-      if (pageContent) {
+      if (pageContent && isSubscribed) {
         setContent(pageContent);
         setLastUpdate(Date.now());
       }
     };
 
-    // Load content immediately
     loadContent();
-
-    // Check for updates every 5 seconds
     const interval = setInterval(loadContent, 5000);
 
-    // Add storage event listener for cross-tab updates
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'cafeteriaContent') {
-        loadContent();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // Cleanup
     return () => {
+      isSubscribed = false;
       clearInterval(interval);
-      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
@@ -66,12 +58,12 @@ export default function Home() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <CafeteriaMenu key={lastUpdate} />
-          <FoodGallery key={lastUpdate} />
+          <CafeteriaMenu />
+          <FoodGallery />
         </div>
         <div className="space-y-8">
-          <CafeNews key={lastUpdate} />
-          <IceCreamStatus key={lastUpdate} />
+          <CafeNews />
+          <IceCreamStatus />
         </div>
       </div>
     </div>
