@@ -17,27 +17,8 @@ const FoodGallery = dynamic(() => import('@/components/FoodGallery'), {
   ssr: false
 });
 
-interface MenuItem {
-  id: number;
-  name: string;
-  demand: number;
-  photo?: string;
-}
-
-interface PageContent {
-  title: string;
-  menuItems: MenuItem[];
-  cafeNews: string[];
-  date: string;
-  lastUpdated: string;
-  iceCreamStatus: {
-    isWorking: boolean;
-    flavors: { name: string; available: boolean; }[];
-  };
-}
-
 export default function Home() {
-  const [content, setContent] = useState<PageContent | null>(null);
+  const [content, setContent] = useState<any>(null);
 
   useEffect(() => {
     const pageContent = getPageContent();
