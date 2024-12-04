@@ -32,7 +32,7 @@ const FoodGallery: FC = () => {
             item.photo && (
               <div key={item.id} className="flex flex-col items-center">
                 <span className="text-lg font-semibold mb-2">{item.name}</span>
-                <div className="relative w-full h-20">
+                <div className="relative w-32 h-32">
                   <Image 
                     src={item.photo}
                     alt={item.name}
