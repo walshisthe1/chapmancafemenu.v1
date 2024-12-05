@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getPageContent } from '@/utils/content';
 
 interface MenuItem {
@@ -54,24 +54,17 @@ const initialContent: PageContent = {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [content, setContent] = useState<PageContent>(initialContent);
+  const [content, setContent] = useState<PageContent>(() => {
+    try {
+      const saved = localStorage.getItem('pageContent');
+      return saved ? JSON.parse(saved) : initialContent;
+    } catch {
+      return initialContent;
+    }
+  });
   const [error, setError] = useState('');
   const [newMenuItem, setNewMenuItem] = useState('');
   const [newNewsItem, setNewNewsItem] = useState('');
-
-  useEffect(() => {
-    const savedContent = localStorage.getItem('pageContent');
-    if (savedContent) {
-      try {
-        const parsedContent = JSON.parse(savedContent);
-        if (JSON.stringify(parsedContent) !== JSON.stringify(content)) {
-          setContent(parsedContent);
-        }
-      } catch (error) {
-        console.error('Error parsing saved content:', error);
-      }
-    }
-  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,12 +100,8 @@ export default function AdminPage() {
       lastUpdated: timeString
     };
     
-    try {
-      localStorage.setItem('pageContent', JSON.stringify(updatedContent));
-      setContent(updatedContent);
-    } catch (error) {
-      console.error('Error saving content:', error);
-    }
+    localStorage.setItem('pageContent', JSON.stringify(updatedContent));
+    setContent(updatedContent);
   };
 
   const addMenuItem = () => {
