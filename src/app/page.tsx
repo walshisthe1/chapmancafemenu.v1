@@ -17,8 +17,19 @@ const FoodGallery = dynamic(() => import('@/components/FoodGallery'), {
   ssr: false
 });
 
+// Add default content
+const defaultContent = {
+  title: "Chapman Cafeteria",
+  menuItems: [],
+  cafeNews: [],
+  iceCreamStatus: {
+    isWorking: true,
+    flavors: []
+  }
+};
+
 export default function Home() {
-  const [content, setContent] = useState<any>(null);
+  const [content, setContent] = useState(defaultContent); // Initialize with default content
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -26,43 +37,24 @@ export default function Home() {
     const loadContent = () => {
       const pageContent = getPageContent();
       if (pageContent) {
-        // Compare with current content to see if update is needed
-        if (JSON.stringify(content) !== JSON.stringify(pageContent)) {
-          setContent(pageContent);
-          setLastUpdate(Date.now());
-          setRefreshKey(prev => prev + 1); // Force refresh of components
-        }
+        setContent(pageContent);
+        setLastUpdate(Date.now());
+        setRefreshKey(prev => prev + 1);
       }
     };
 
-    // Initial load
     loadContent();
+    const interval = setInterval(loadContent, 3000);
 
-    // Set up polling interval
-    const interval = setInterval(loadContent, 3000); // Check every 3 seconds
-
-    // Listen for storage changes (admin updates)
-    const handleStorageChange = () => {
-      loadContent();
-    };
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [content]);
-
-  if (!content) {
-    return <div className="min-h-screen p-8 bg-gray-50">Loading...</div>;
-  }
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
+    <div className="min-h-screen p-8 bg-white text-black">
       <header className="mb-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold text-gray-800">{content?.title || "Chapman Cafeteria"}</h1>
-          <span className="text-sm text-gray-500">
+          <h1 className="text-4xl font-bold text-gray-800">{content.title}</h1>
+          <span className="text-sm text-gray-600">
             Last updated: {new Date(lastUpdate).toLocaleTimeString()}
           </span>
         </div>
