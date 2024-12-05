@@ -1,20 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
+  reactStrictMode: false,
+  onDemandEntries: {
+    // Disable Fast Refresh
+    maxInactiveAge: 1000 * 60 * 60,
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  }
-}
+};
 
-module.exports = nextConfig 
+module.exports = nextConfig; 

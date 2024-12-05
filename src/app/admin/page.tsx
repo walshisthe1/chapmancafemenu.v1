@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getPageContent } from '@/utils/content';
 
 interface MenuItem {
@@ -24,7 +24,7 @@ interface PageContent {
   };
 }
 
-const initialContent: PageContent = {
+const getInitialContent = (): PageContent => ({
   title: "Chapman Cafeteria",
   menuTitle: "Cafeteria Menu",
   mealOptionsTitle: "Meal Options",
@@ -40,16 +40,17 @@ const initialContent: PageContent = {
     'Chef\'s special: Sushi night on Friday',
     'Upcoming food waste reduction campaign',
   ],
-  date: 'Tuesday, December 3',
-  lastUpdated: '8:09 PM PST',
+  date: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+  lastUpdated: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }),
   iceCreamStatus: {
     isWorking: true,
     flavors: [
       { name: 'Vanilla', available: true },
       { name: 'Chocolate', available: true },
+      { name: 'Strawberry', available: true },
     ],
   },
-};
+});
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -57,14 +58,21 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [newMenuItem, setNewMenuItem] = useState('');
   const [newNewsItem, setNewNewsItem] = useState('');
-  
-  const savedContent = typeof window !== 'undefined' 
-    ? localStorage.getItem('pageContent') 
-    : null;
-  
-  const [content, setContent] = useState<PageContent>(
-    savedContent ? JSON.parse(savedContent) : initialContent
-  );
+  const [content, setContent] = useState<PageContent | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedContent = localStorage.getItem('pageContent');
+      setContent(savedContent ? JSON.parse(savedContent) : getInitialContent());
+    } catch (error) {
+      console.error('Error loading content:', error);
+      setContent(getInitialContent());
+    }
+  }, []);
+
+  if (!content) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,16 +96,15 @@ export default function AdminPage() {
   };
 
   const handleSave = () => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      timeZoneName: 'short' 
-    });
+    if (!content) return;
     
     const updatedContent = {
       ...content,
-      lastUpdated: timeString
+      lastUpdated: new Date().toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        timeZoneName: 'short' 
+      })
     };
     
     try {
