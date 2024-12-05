@@ -5,45 +5,57 @@ import { getPageContent } from '@/utils/content';
 import dynamic from 'next/dynamic';
 
 const CafeteriaMenu = dynamic(() => import('@/components/CafeteriaMenu'), {
-  ssr: false,
-  loading: () => <div>Loading menu...</div>
+  ssr: false
 });
 const CafeNews = dynamic(() => import('@/components/CafeNews'), {
-  ssr: false,
-  loading: () => <div>Loading news...</div>
+  ssr: false
 });
 const IceCreamStatus = dynamic(() => import('@/components/IceCreamStatus'), {
-  ssr: false,
-  loading: () => <div>Loading status...</div>
+  ssr: false
 });
 const FoodGallery = dynamic(() => import('@/components/FoodGallery'), {
-  ssr: false,
-  loading: () => <div>Loading gallery...</div>
+  ssr: false
 });
 
 export default function Home() {
   const [content, setContent] = useState<any>(null);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    let isSubscribed = true;
-
-    const loadContent = async () => {
+    const loadContent = () => {
       const pageContent = getPageContent();
-      if (pageContent && isSubscribed) {
-        setContent(pageContent);
-        setLastUpdate(Date.now());
+      if (pageContent) {
+        // Compare with current content to see if update is needed
+        if (JSON.stringify(content) !== JSON.stringify(pageContent)) {
+          setContent(pageContent);
+          setLastUpdate(Date.now());
+          setRefreshKey(prev => prev + 1); // Force refresh of components
+        }
       }
     };
 
+    // Initial load
     loadContent();
-    const interval = setInterval(loadContent, 5000);
+
+    // Set up polling interval
+    const interval = setInterval(loadContent, 3000); // Check every 3 seconds
+
+    // Listen for storage changes (admin updates)
+    const handleStorageChange = () => {
+      loadContent();
+    };
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      isSubscribed = false;
       clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [content]);
+
+  if (!content) {
+    return <div className="min-h-screen p-8 bg-gray-50">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
@@ -58,12 +70,12 @@ export default function Home() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <CafeteriaMenu />
-          <FoodGallery />
+          <CafeteriaMenu key={`menu-${refreshKey}`} />
+          <FoodGallery key={`gallery-${refreshKey}`} />
         </div>
         <div className="space-y-8">
-          <CafeNews />
-          <IceCreamStatus />
+          <CafeNews key={`news-${refreshKey}`} />
+          <IceCreamStatus key={`status-${refreshKey}`} />
         </div>
       </div>
     </div>
