@@ -64,13 +64,11 @@ export default function AdminPage() {
     if (savedContent) {
       try {
         const parsedContent = JSON.parse(savedContent);
-        if (!Array.isArray(parsedContent.cafeNews)) {
-          parsedContent.cafeNews = initialContent.cafeNews;
+        if (JSON.stringify(parsedContent) !== JSON.stringify(content)) {
+          setContent(parsedContent);
         }
-        setContent(parsedContent);
       } catch (error) {
         console.error('Error parsing saved content:', error);
-        setContent(initialContent);
       }
     }
   }, []);
@@ -96,7 +94,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
@@ -106,8 +104,7 @@ export default function AdminPage() {
     
     const updatedContent = {
       ...content,
-      lastUpdated: timeString,
-      cafeNews: [...content.cafeNews]
+      lastUpdated: timeString
     };
     
     try {
