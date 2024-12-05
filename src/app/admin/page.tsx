@@ -102,7 +102,6 @@ export default function AdminPage() {
     
     localStorage.setItem('pageContent', JSON.stringify(updatedContent));
     setContent(updatedContent);
-    window.location.reload();
   };
 
   const addMenuItem = () => {
@@ -188,7 +187,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold text-black">Admin Dashboard</h1>
           <button
             onClick={handleSave}
             className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
@@ -197,7 +196,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 space-y-6">
+        <div className="bg-white rounded-lg shadow p-6 space-y-6 text-black">
           <div>
             <h2 className="text-xl font-semibold mb-4">General Settings</h2>
             <div className="space-y-4">
