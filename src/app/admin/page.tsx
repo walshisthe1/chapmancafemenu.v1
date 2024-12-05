@@ -54,17 +54,17 @@ const initialContent: PageContent = {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [content, setContent] = useState<PageContent>(() => {
-    try {
-      const saved = localStorage.getItem('pageContent');
-      return saved ? JSON.parse(saved) : initialContent;
-    } catch {
-      return initialContent;
-    }
-  });
   const [error, setError] = useState('');
   const [newMenuItem, setNewMenuItem] = useState('');
   const [newNewsItem, setNewNewsItem] = useState('');
+  
+  const savedContent = typeof window !== 'undefined' 
+    ? localStorage.getItem('pageContent') 
+    : null;
+  
+  const [content, setContent] = useState<PageContent>(
+    savedContent ? JSON.parse(savedContent) : initialContent
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,14 +100,23 @@ export default function AdminPage() {
       lastUpdated: timeString
     };
     
-    localStorage.setItem('pageContent', JSON.stringify(updatedContent));
-    setContent(updatedContent);
+    try {
+      localStorage.setItem('pageContent', JSON.stringify(updatedContent));
+      setContent(updatedContent);
+    } catch (error) {
+      console.error('Failed to save content:', error);
+    }
+  };
+
+  const updateContent = (newContent: PageContent) => {
+    setContent(newContent);
+    localStorage.setItem('pageContent', JSON.stringify(newContent));
   };
 
   const addMenuItem = () => {
     if (newMenuItem.trim()) {
       const newId = Math.max(0, ...content.menuItems.map(item => item.id)) + 1;
-      setContent({
+      updateContent({
         ...content,
         menuItems: [...content.menuItems, { id: newId, name: newMenuItem, demand: 0 }]
       });
@@ -116,7 +125,7 @@ export default function AdminPage() {
   };
 
   const removeMenuItem = (id: number) => {
-    setContent({
+    updateContent({
       ...content,
       menuItems: content.menuItems.filter(item => item.id !== id)
     });
@@ -124,7 +133,7 @@ export default function AdminPage() {
 
   const addNewsItem = () => {
     if (newNewsItem.trim()) {
-      setContent({
+      updateContent({
         ...content,
         cafeNews: [...content.cafeNews, newNewsItem]
       });
@@ -133,7 +142,7 @@ export default function AdminPage() {
   };
 
   const removeNewsItem = (index: number) => {
-    setContent({
+    updateContent({
       ...content,
       cafeNews: content.cafeNews.filter((_, i) => i !== index)
     });
@@ -147,7 +156,7 @@ export default function AdminPage() {
         const newItems = content.menuItems.map(item =>
           item.id === id ? { ...item, photo: reader.result as string } : item
         );
-        setContent({ ...content, menuItems: newItems });
+        updateContent({ ...content, menuItems: newItems });
       };
       reader.readAsDataURL(file);
     }
@@ -207,7 +216,7 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={content.title}
-                  onChange={(e) => setContent({ ...content, title: e.target.value })}
+                  onChange={(e) => updateContent({ ...content, title: e.target.value })}
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
@@ -218,7 +227,7 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={content.menuTitle}
-                  onChange={(e) => setContent({ ...content, menuTitle: e.target.value })}
+                  onChange={(e) => updateContent({ ...content, menuTitle: e.target.value })}
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
@@ -229,7 +238,7 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={content.mealOptionsTitle}
-                  onChange={(e) => setContent({ ...content, mealOptionsTitle: e.target.value })}
+                  onChange={(e) => updateContent({ ...content, mealOptionsTitle: e.target.value })}
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
@@ -240,7 +249,7 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={content.date}
-                  onChange={(e) => setContent({ ...content, date: e.target.value })}
+                  onChange={(e) => updateContent({ ...content, date: e.target.value })}
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
@@ -251,7 +260,7 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={content.lastUpdated}
-                  onChange={(e) => setContent({ ...content, lastUpdated: e.target.value })}
+                  onChange={(e) => updateContent({ ...content, lastUpdated: e.target.value })}
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
@@ -270,7 +279,7 @@ export default function AdminPage() {
                       const newItems = content.menuItems.map(i =>
                         i.id === item.id ? { ...i, name: e.target.value } : i
                       );
-                      setContent({ ...content, menuItems: newItems });
+                      updateContent({ ...content, menuItems: newItems });
                     }}
                     className="border rounded px-2 py-1 flex-grow"
                   />
@@ -283,7 +292,7 @@ export default function AdminPage() {
                       const newItems = content.menuItems.map(i =>
                         i.id === item.id ? { ...i, demand: Number(e.target.value) } : i
                       );
-                      setContent({ ...content, menuItems: newItems });
+                      updateContent({ ...content, menuItems: newItems });
                     }}
                     className="border rounded px-2 py-1 w-20"
                   />
@@ -330,7 +339,7 @@ export default function AdminPage() {
                     onChange={(e) => {
                       const newNews = [...content.cafeNews];
                       newNews[index] = e.target.value;
-                      setContent({ ...content, cafeNews: newNews });
+                      updateContent({ ...content, cafeNews: newNews });
                     }}
                     className="border rounded px-2 py-1 flex-grow"
                   />
@@ -368,7 +377,7 @@ export default function AdminPage() {
                   type="checkbox"
                   checked={content.iceCreamStatus.isWorking}
                   onChange={(e) => {
-                    setContent({
+                    updateContent({
                       ...content,
                       iceCreamStatus: {
                         ...content.iceCreamStatus,
@@ -386,7 +395,7 @@ export default function AdminPage() {
                       type="checkbox"
                       checked={flavor.available}
                       onChange={(e) => {
-                        setContent({
+                        updateContent({
                           ...content,
                           iceCreamStatus: {
                             ...content.iceCreamStatus,
