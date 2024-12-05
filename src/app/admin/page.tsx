@@ -60,9 +60,18 @@ export default function AdminPage() {
   const [newNewsItem, setNewNewsItem] = useState('');
 
   useEffect(() => {
-    const savedContent = getPageContent();
+    const savedContent = localStorage.getItem('pageContent');
     if (savedContent) {
-      setContent(savedContent);
+      try {
+        const parsedContent = JSON.parse(savedContent);
+        if (!Array.isArray(parsedContent.cafeNews)) {
+          parsedContent.cafeNews = initialContent.cafeNews;
+        }
+        setContent(parsedContent);
+      } catch (error) {
+        console.error('Error parsing saved content:', error);
+        setContent(initialContent);
+      }
     }
   }, []);
 
@@ -97,11 +106,16 @@ export default function AdminPage() {
     
     const updatedContent = {
       ...content,
-      lastUpdated: timeString
+      lastUpdated: timeString,
+      cafeNews: [...content.cafeNews]
     };
     
-    localStorage.setItem('pageContent', JSON.stringify(updatedContent));
-    setContent(updatedContent);
+    try {
+      localStorage.setItem('pageContent', JSON.stringify(updatedContent));
+      setContent(updatedContent);
+    } catch (error) {
+      console.error('Error saving content:', error);
+    }
   };
 
   const addMenuItem = () => {
@@ -377,11 +391,11 @@ export default function AdminPage() {
                     });
                   }}
                 />
-                <span>Working</span>
+                <span>Machine Working</span>
               </label>
-              <label className="flex items-center gap-2">
+              <div className="flex flex-col gap-2">
                 {content.iceCreamStatus.flavors.map((flavor) => (
-                  <label key={flavor.name}>
+                  <label key={flavor.name} className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={flavor.available}
@@ -400,7 +414,7 @@ export default function AdminPage() {
                     <span>{flavor.name}</span>
                   </label>
                 ))}
-              </label>
+              </div>
             </div>
           </div>
         </div>
