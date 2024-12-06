@@ -1,85 +1,70 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 
-// Use tmp directory for Vercel environment
-const dataDir = process.env.VERCEL 
-  ? '/tmp'
-  : path.join(process.cwd(), 'data');
+// Helper function to get the content file path
+const getContentPath = () => {
+  return path.join(process.cwd(), 'content.json');
+};
 
-const dataFilePath = path.join(dataDir, 'content.json');
-
-// Ensure directory exists
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-export async function POST(request: Request) {
-  try {
-    const content = await request.json();
-    content.lastUpdated = new Date().toLocaleTimeString();
-    
-    // Write to file
-    await fs.promises.writeFile(
-      dataFilePath,
-      JSON.stringify(content, null, 2),
-      'utf8'
-    );
-
-    // Verify the write was successful
-    const savedContent = await fs.promises.readFile(dataFilePath, 'utf8');
-    const parsedContent = JSON.parse(savedContent);
-    
-    return NextResponse.json({
-      success: true,
-      content: parsedContent
-    });
-  } catch (error: any) {
-    console.error('Save error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to save content', 
-        details: error?.message || 'Unknown error',
-        path: dataFilePath
-      },
-      { status: 500 }
-    );
-  }
-}
-
+// GET handler
 export async function GET() {
   try {
-    if (!fs.existsSync(dataFilePath)) {
-      // Return default content if file doesn't exist
+    const filePath = getContentPath();
+    
+    try {
+      const content = await fs.readFile(filePath, 'utf8');
+      return NextResponse.json(JSON.parse(content));
+    } catch (error) {
+      // If file doesn't exist, return default content
       const defaultContent = {
         title: "Chapman Cafeteria",
         menuTitle: "Cafeteria Menu",
         mealOptionsTitle: "Meal Options",
-        menuItems: [],
-        cafeNews: [],
-        date: new Date().toLocaleDateString('en-US', { 
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric'
-        }),
+        menuItems: [
+          { id: 1, name: 'Grilled Chicken', demand: 5 },
+          { id: 2, name: 'Vegetarian Pasta', demand: 3 },
+          { id: 3, name: 'Taco Bar', demand: 8 },
+        ],
+        cafeNews: [
+          'New vegan options available!',
+          'Chef\'s special: Sushi Friday',
+        ],
+        date: new Date().toLocaleDateString(),
         lastUpdated: new Date().toLocaleTimeString(),
         iceCreamStatus: {
           isWorking: true,
           flavors: [
-            { name: "Vanilla", available: true },
-            { name: "Chocolate", available: true }
-          ]
-        }
+            { name: 'Vanilla', available: true },
+            { name: 'Chocolate', available: true },
+          ],
+        },
       };
+      
+      // Save default content
+      await fs.writeFile(filePath, JSON.stringify(defaultContent, null, 2));
       return NextResponse.json(defaultContent);
     }
-    const data = await fs.promises.readFile(dataFilePath, 'utf8');
-    return NextResponse.json(JSON.parse(data));
-  } catch (error: any) {
-    console.error('Read error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch content', details: error?.message || 'Unknown error' },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('Error reading content:', error);
+    return NextResponse.json({ error: 'Failed to read content' }, { status: 500 });
   }
-} 
+}
+
+// POST handler
+export async function POST(request: Request) {
+  try {
+    const content = await request.json();
+    const filePath = getContentPath();
+    
+    // Save the content
+    await fs.writeFile(filePath, JSON.stringify(content, null, 2));
+    
+    // Read it back to confirm save
+    const savedContent = await fs.readFile(filePath, 'utf8');
+    return NextResponse.json(JSON.parse(savedContent));
+  } catch (error) {
+    console.error('Error saving content:', error);
+    return NextResponse.json({ error: 'Failed to save content' }, { status: 500 });
+  }
+}

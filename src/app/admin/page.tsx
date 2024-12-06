@@ -96,20 +96,28 @@ export default function AdminPage() {
         console.log('Before save - lastUpdated:', content.lastUpdated);
         
         const contentToSave = {
-          title: content.title || "Chapman Cafeteria",
-          menuTitle: content.menuTitle || "Cafeteria Menu",
-          mealOptionsTitle: content.mealOptionsTitle || "Meal Options",
-          menuItems: content.menuItems || [],
-          cafeNews: content.cafeNews || [],
-          date: content.date || new Date().toLocaleDateString(),
-          lastUpdated: content.lastUpdated || new Date().toLocaleTimeString(),
-          iceCreamStatus: content.iceCreamStatus || {
-            isWorking: true,
-            flavors: []
+          title: content.title,
+          menuTitle: content.menuTitle,
+          mealOptionsTitle: content.mealOptionsTitle,
+          menuItems: content.menuItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            demand: item.demand,
+            photo: item.photo || undefined
+          })),
+          cafeNews: [...content.cafeNews],
+          date: content.date,
+          lastUpdated: content.lastUpdated,
+          iceCreamStatus: {
+            isWorking: content.iceCreamStatus.isWorking,
+            flavors: content.iceCreamStatus.flavors.map(f => ({
+              name: f.name,
+              available: f.available
+            }))
           }
         };
 
-        console.log('Saving content:', contentToSave);
+        console.log('Saving content:', JSON.stringify(contentToSave, null, 2));
         const savedContent = await savePageContent(contentToSave);
         console.log('After save - savedContent:', savedContent);
         
@@ -119,7 +127,7 @@ export default function AdminPage() {
         }
       } catch (error) {
         console.error('Save error:', error);
-        alert('Failed to save changes');
+        alert('Failed to save changes: ' + (error as Error).message);
       }
     }
   };
@@ -174,11 +182,14 @@ export default function AdminPage() {
   const handleTimeChange = (newTime: string) => {
     if (!content) return;
     
+    console.log('Current content:', content);
     console.log('Updating time to:', newTime);
+    
     const updatedContent = {
       ...content,
       lastUpdated: newTime
     };
+    
     console.log('Updated content:', updatedContent);
     setContent(updatedContent);
   };
