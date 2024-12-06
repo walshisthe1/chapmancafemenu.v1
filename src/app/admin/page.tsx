@@ -93,7 +93,15 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (content) {
       try {
-        const savedContent = await savePageContent(content);
+        const updatedContent = {
+          ...content,
+          lastUpdated: new Date().toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+          })
+        };
+        const savedContent = await savePageContent(updatedContent);
         setContent(savedContent);
         alert('Changes saved successfully!');
       } catch (error) {
@@ -127,19 +135,36 @@ export default function AdminPage() {
 
   const addNewsItem = () => {
     if (newNewsItem.trim()) {
-      updateContent({
+      const updatedContent = {
         ...content,
-        cafeNews: [...content.cafeNews, newNewsItem]
-      });
+        cafeNews: [...content.cafeNews, newNewsItem.trim()]
+      };
+      setContent(updatedContent);
       setNewNewsItem('');
+      savePageContent(updatedContent).catch(error => {
+        console.error('Failed to save news:', error);
+        alert('Failed to save news item');
+      });
     }
   };
 
   const removeNewsItem = (index: number) => {
-    updateContent({
+    const updatedContent = {
       ...content,
       cafeNews: content.cafeNews.filter((_, i) => i !== index)
+    };
+    setContent(updatedContent);
+    savePageContent(updatedContent).catch(error => {
+      console.error('Failed to remove news:', error);
+      alert('Failed to remove news item');
     });
+  };
+
+  const handleNewsItemChange = (index: number, value: string) => {
+    const newNews = [...content.cafeNews];
+    newNews[index] = value;
+    const updatedContent = { ...content, cafeNews: newNews };
+    setContent(updatedContent);
   };
 
   if (!isAuthenticated) {
@@ -237,12 +262,9 @@ export default function AdminPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Last Updated
                 </label>
-                <input
-                  type="text"
-                  value={content.lastUpdated}
-                  onChange={(e) => updateContent({ ...content, lastUpdated: e.target.value })}
-                  className="border rounded px-2 py-1 w-full"
-                />
+                <div className="border rounded px-2 py-1 w-full bg-gray-50">
+                  {content.lastUpdated}
+                </div>
               </div>
             </div>
           </div>
@@ -318,11 +340,8 @@ export default function AdminPage() {
                   <input
                     type="text"
                     value={news}
-                    onChange={(e) => {
-                      const newNews = [...content.cafeNews];
-                      newNews[index] = e.target.value;
-                      updateContent({ ...content, cafeNews: newNews });
-                    }}
+                    onChange={(e) => handleNewsItemChange(index, e.target.value)}
+                    onBlur={() => savePageContent(content)}
                     className="border rounded px-2 py-1 flex-grow"
                   />
                   <button
