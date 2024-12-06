@@ -2,12 +2,14 @@
 
 import type { PutBlobResult } from '@vercel/blob';
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 
 interface FileUploadProps {
   onUploadCompleteAction: (url: string) => void;
+  currentPhotoUrl?: string;
 }
 
-export default function FileUpload({ onUploadCompleteAction }: FileUploadProps) {
+export default function FileUpload({ onUploadCompleteAction, currentPhotoUrl }: FileUploadProps) {
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -45,22 +47,34 @@ export default function FileUpload({ onUploadCompleteAction }: FileUploadProps) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
-      <input 
-        name="file" 
-        ref={inputFileRef} 
-        type="file" 
-        required 
-        accept="image/*"
-        className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-      />
-      <button 
-        type="submit" 
-        disabled={uploading}
-        className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50"
-      >
-        {uploading ? 'Uploading...' : 'Upload'}
-      </button>
-    </form>
+    <div className="flex items-center gap-2">
+      {currentPhotoUrl && (
+        <div className="relative w-12 h-12">
+          <Image 
+            src={currentPhotoUrl}
+            alt="Current photo"
+            fill
+            className="object-cover rounded"
+          />
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <input 
+          name="file" 
+          ref={inputFileRef} 
+          type="file" 
+          required 
+          accept="image/*"
+          className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        />
+        <button 
+          type="submit" 
+          disabled={uploading}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+        >
+          {uploading ? 'Uploading...' : 'Upload'}
+        </button>
+      </form>
+    </div>
   );
 } 

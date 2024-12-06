@@ -335,7 +335,8 @@ export default function AdminPage() {
                         i.id === item.id ? { ...i, photo: url } : i
                       );
                       updateContent({ ...content, menuItems: newItems });
-                    }} 
+                    }}
+                    currentPhotoUrl={item.photo}
                   />
                   <button
                     onClick={() => removeMenuItem(item.id)}

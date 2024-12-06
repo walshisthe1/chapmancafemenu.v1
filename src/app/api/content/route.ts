@@ -55,16 +55,39 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const content = await request.json();
-    const filePath = getContentPath();
-    
-    // Save the content
-    await fs.writeFile(filePath, JSON.stringify(content, null, 2));
-    
-    // Read it back to confirm save
-    const savedContent = await fs.readFile(filePath, 'utf8');
-    return NextResponse.json(JSON.parse(savedContent));
+    console.log('Received content:', content);
+
+    // Validate content structure
+    if (!content || typeof content !== 'object') {
+      return NextResponse.json(
+        { error: 'Invalid content format' },
+        { status: 400 }
+      );
+    }
+
+    try {
+      // Save the content
+      await fs.writeFile(
+        getContentPath(),
+        JSON.stringify(content, null, 2),
+        'utf8'
+      );
+      
+      // Read back and return the saved content
+      const savedContent = await fs.readFile(getContentPath(), 'utf8');
+      return NextResponse.json(JSON.parse(savedContent));
+    } catch (writeError) {
+      console.error('Error writing file:', writeError);
+      return NextResponse.json(
+        { error: 'Failed to write content to file' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error('Error saving content:', error);
-    return NextResponse.json({ error: 'Failed to save content' }, { status: 500 });
+    console.error('Error in POST handler:', error);
+    return NextResponse.json(
+      { error: 'Failed to process content' },
+      { status: 500 }
+    );
   }
 }

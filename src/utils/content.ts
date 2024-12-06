@@ -37,21 +37,36 @@ export async function getPageContent() {
 
 export async function savePageContent(content: any) {
   try {
+    console.log('Attempting to save content:', content);
+    
     const response = await fetch('/api/content', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(content),
+      body: JSON.stringify({
+        title: content.title,
+        menuTitle: content.menuTitle,
+        mealOptionsTitle: content.mealOptionsTitle,
+        menuItems: content.menuItems,
+        cafeNews: content.cafeNews,
+        date: content.date,
+        lastUpdated: content.lastUpdated,
+        iceCreamStatus: content.iceCreamStatus
+      }),
     });
     
     if (!response.ok) {
-      throw new Error('Failed to save content');
+      const errorData = await response.json();
+      console.error('Save failed:', errorData);
+      throw new Error(`Failed to save content: ${errorData.error || response.statusText}`);
     }
     
-    return await response.json();
+    const savedContent = await response.json();
+    console.log('Content saved successfully:', savedContent);
+    return savedContent;
   } catch (error) {
-    console.error('Failed to save content:', error);
+    console.error('Error in savePageContent:', error);
     throw error;
   }
 } 
