@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getPageContent, savePageContent } from '@/utils/content';
+import FileUpload from '@/components/FileUpload';
 
 interface MenuItem {
   id: number;
@@ -141,39 +142,6 @@ export default function AdminPage() {
     });
   };
 
-  const handlePhotoUpload = async (itemId: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      // Create FormData
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('itemId', itemId.toString());
-
-      // Upload photo
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
-
-      const { photoUrl } = await response.json();
-
-      // Update menu item with new photo URL
-      if (content) {
-        const updatedItems = content.menuItems.map((item) =>
-          item.id === itemId ? { ...item, photo: photoUrl } : item
-        );
-        setContent({ ...content, menuItems: updatedItems });
-      }
-    } catch (error) {
-      console.error('Failed to upload photo:', error);
-      alert('Failed to upload photo');
-    }
-  };
-
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -308,11 +276,13 @@ export default function AdminPage() {
                     }}
                     className="border rounded px-2 py-1 w-20"
                   />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handlePhotoUpload(item.id, e)}
-                    className="border rounded px-2 py-1"
+                  <FileUpload 
+                    onUploadCompleteAction={(url) => {
+                      const newItems = content.menuItems.map(i =>
+                        i.id === item.id ? { ...i, photo: url } : i
+                      );
+                      updateContent({ ...content, menuItems: newItems });
+                    }} 
                   />
                   <button
                     onClick={() => removeMenuItem(item.id)}
