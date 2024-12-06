@@ -93,18 +93,25 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (content) {
       try {
-        const savedContent = await savePageContent(content);
+        console.log('Saving content:', content);
+        const savedContent = await savePageContent({
+          ...content,
+          lastUpdated: content.lastUpdated,
+          cafeNews: [...content.cafeNews]
+        });
         setContent(savedContent);
+        console.log('Saved content:', savedContent);
         alert('Changes saved successfully!');
       } catch (error) {
+        console.error('Save error:', error);
         alert('Failed to save changes');
       }
     }
   };
 
   const updateContent = (newContent: PageContent) => {
+    console.log('Updating content:', newContent);
     setContent(newContent);
-    localStorage.setItem('pageContent', JSON.stringify(newContent));
   };
 
   const addMenuItem = () => {
@@ -328,12 +335,21 @@ export default function AdminPage() {
                     onChange={(e) => {
                       const newNews = [...content.cafeNews];
                       newNews[index] = e.target.value;
-                      updateContent({ ...content, cafeNews: newNews });
+                      updateContent({
+                        ...content,
+                        cafeNews: newNews
+                      });
                     }}
                     className="border rounded px-2 py-1 flex-grow"
                   />
                   <button
-                    onClick={() => removeNewsItem(index)}
+                    onClick={() => {
+                      const newNews = content.cafeNews.filter((_, i) => i !== index);
+                      updateContent({
+                        ...content,
+                        cafeNews: newNews
+                      });
+                    }}
                     className="p-2 text-red-600 hover:bg-red-50 rounded"
                   >
                     Remove
@@ -349,7 +365,15 @@ export default function AdminPage() {
                   className="border rounded px-2 py-1 flex-grow"
                 />
                 <button
-                  onClick={addNewsItem}
+                  onClick={() => {
+                    if (newNewsItem.trim()) {
+                      updateContent({
+                        ...content,
+                        cafeNews: [...content.cafeNews, newNewsItem.trim()]
+                      });
+                      setNewNewsItem('');
+                    }
+                  }}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   Add News
