@@ -93,14 +93,25 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (content) {
       try {
-        console.log('Saving content:', content);
-        const savedContent = await savePageContent({
+        console.log('Before save - lastUpdated:', content.lastUpdated);
+        
+        const contentToSave = {
           ...content,
-          lastUpdated: content.lastUpdated,
-          cafeNews: [...content.cafeNews]
-        });
+          lastUpdated: content.lastUpdated || new Date().toLocaleTimeString(),
+          title: content.title,
+          menuTitle: content.menuTitle,
+          mealOptionsTitle: content.mealOptionsTitle,
+          menuItems: content.menuItems,
+          cafeNews: content.cafeNews,
+          date: content.date,
+          iceCreamStatus: content.iceCreamStatus
+        };
+
+        console.log('Saving content:', contentToSave);
+        const savedContent = await savePageContent(contentToSave);
+        console.log('After save - savedContent:', savedContent);
+        
         setContent(savedContent);
-        console.log('Saved content:', savedContent);
         alert('Changes saved successfully!');
       } catch (error) {
         console.error('Save error:', error);
@@ -154,6 +165,14 @@ export default function AdminPage() {
     newNews[index] = value;
     const updatedContent = { ...content, cafeNews: newNews };
     setContent(updatedContent);
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    console.log('Updating time to:', newTime);
+    updateContent({
+      ...content,
+      lastUpdated: newTime
+    });
   };
 
   if (!isAuthenticated) {
@@ -253,11 +272,8 @@ export default function AdminPage() {
                 </label>
                 <input
                   type="text"
-                  value={content.lastUpdated}
-                  onChange={(e) => updateContent({ 
-                    ...content, 
-                    lastUpdated: e.target.value 
-                  })}
+                  value={content.lastUpdated || ''}
+                  onChange={(e) => handleTimeChange(e.target.value)}
                   placeholder="Enter time (e.g., 7:08 AM)"
                   className="border rounded px-2 py-1 w-full"
                 />
