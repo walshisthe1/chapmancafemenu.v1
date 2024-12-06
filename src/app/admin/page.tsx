@@ -96,23 +96,27 @@ export default function AdminPage() {
         console.log('Before save - lastUpdated:', content.lastUpdated);
         
         const contentToSave = {
-          ...content,
+          title: content.title || "Chapman Cafeteria",
+          menuTitle: content.menuTitle || "Cafeteria Menu",
+          mealOptionsTitle: content.mealOptionsTitle || "Meal Options",
+          menuItems: content.menuItems || [],
+          cafeNews: content.cafeNews || [],
+          date: content.date || new Date().toLocaleDateString(),
           lastUpdated: content.lastUpdated || new Date().toLocaleTimeString(),
-          title: content.title,
-          menuTitle: content.menuTitle,
-          mealOptionsTitle: content.mealOptionsTitle,
-          menuItems: content.menuItems,
-          cafeNews: content.cafeNews,
-          date: content.date,
-          iceCreamStatus: content.iceCreamStatus
+          iceCreamStatus: content.iceCreamStatus || {
+            isWorking: true,
+            flavors: []
+          }
         };
 
         console.log('Saving content:', contentToSave);
         const savedContent = await savePageContent(contentToSave);
         console.log('After save - savedContent:', savedContent);
         
-        setContent(savedContent);
-        alert('Changes saved successfully!');
+        if (savedContent) {
+          setContent(savedContent);
+          alert('Changes saved successfully!');
+        }
       } catch (error) {
         console.error('Save error:', error);
         alert('Failed to save changes');
@@ -168,11 +172,15 @@ export default function AdminPage() {
   };
 
   const handleTimeChange = (newTime: string) => {
+    if (!content) return;
+    
     console.log('Updating time to:', newTime);
-    updateContent({
+    const updatedContent = {
       ...content,
       lastUpdated: newTime
-    });
+    };
+    console.log('Updated content:', updatedContent);
+    setContent(updatedContent);
   };
 
   if (!isAuthenticated) {
