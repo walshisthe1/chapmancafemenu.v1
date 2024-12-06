@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-const dataFilePath = path.join(process.cwd(), 'data', 'content.json');
+// Use tmp directory for Vercel environment
+const dataDir = process.env.VERCEL 
+  ? '/tmp'
+  : path.join(process.cwd(), 'data');
 
-// Ensure data directory exists
-const dataDir = path.join(process.cwd(), 'data');
+const dataFilePath = path.join(dataDir, 'content.json');
+
+// Ensure directory exists
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
@@ -15,18 +19,29 @@ export async function POST(request: Request) {
     const content = await request.json();
     content.lastUpdated = new Date().toLocaleTimeString();
     
-    // Ensure we have write permissions and the directory exists
+    // Write to file
     await fs.promises.writeFile(
       dataFilePath,
       JSON.stringify(content, null, 2),
-      { flag: 'w' }
+      'utf8'
     );
+
+    // Verify the write was successful
+    const savedContent = await fs.promises.readFile(dataFilePath, 'utf8');
+    const parsedContent = JSON.parse(savedContent);
     
-    return NextResponse.json({ success: true, content });
+    return NextResponse.json({
+      success: true,
+      content: parsedContent
+    });
   } catch (error: any) {
     console.error('Save error:', error);
     return NextResponse.json(
-      { error: 'Failed to save content', details: error?.message || 'Unknown error' },
+      { 
+        error: 'Failed to save content', 
+        details: error?.message || 'Unknown error',
+        path: dataFilePath
+      },
       { status: 500 }
     );
   }
@@ -35,7 +50,28 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     if (!fs.existsSync(dataFilePath)) {
-      return NextResponse.json({ error: 'No content found' }, { status: 404 });
+      // Return default content if file doesn't exist
+      const defaultContent = {
+        title: "Chapman Cafeteria",
+        menuTitle: "Cafeteria Menu",
+        mealOptionsTitle: "Meal Options",
+        menuItems: [],
+        cafeNews: [],
+        date: new Date().toLocaleDateString('en-US', { 
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric'
+        }),
+        lastUpdated: new Date().toLocaleTimeString(),
+        iceCreamStatus: {
+          isWorking: true,
+          flavors: [
+            { name: "Vanilla", available: true },
+            { name: "Chocolate", available: true }
+          ]
+        }
+      };
+      return NextResponse.json(defaultContent);
     }
     const data = await fs.promises.readFile(dataFilePath, 'utf8');
     return NextResponse.json(JSON.parse(data));
