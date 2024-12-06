@@ -93,48 +93,18 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (content) {
       try {
-        console.log('Before save - lastUpdated:', content.lastUpdated);
-        
-        const contentToSave = {
-          title: content.title,
-          menuTitle: content.menuTitle,
-          mealOptionsTitle: content.mealOptionsTitle,
-          menuItems: content.menuItems.map(item => ({
-            id: item.id,
-            name: item.name,
-            demand: item.demand,
-            photo: item.photo || undefined
-          })),
-          cafeNews: [...content.cafeNews],
-          date: content.date,
-          lastUpdated: content.lastUpdated,
-          iceCreamStatus: {
-            isWorking: content.iceCreamStatus.isWorking,
-            flavors: content.iceCreamStatus.flavors.map(f => ({
-              name: f.name,
-              available: f.available
-            }))
-          }
-        };
-
-        console.log('Saving content:', JSON.stringify(contentToSave, null, 2));
-        const savedContent = await savePageContent(contentToSave);
-        console.log('After save - savedContent:', savedContent);
-        
-        if (savedContent) {
-          setContent(savedContent);
-          alert('Changes saved successfully!');
-        }
+        const savedContent = await savePageContent(content);
+        setContent(savedContent);
+        alert('Changes saved successfully!');
       } catch (error) {
-        console.error('Save error:', error);
-        alert('Failed to save changes: ' + (error as Error).message);
+        alert('Failed to save changes');
       }
     }
   };
 
   const updateContent = (newContent: PageContent) => {
-    console.log('Updating content:', newContent);
     setContent(newContent);
+    localStorage.setItem('pageContent', JSON.stringify(newContent));
   };
 
   const addMenuItem = () => {
@@ -176,21 +146,6 @@ export default function AdminPage() {
     const newNews = [...content.cafeNews];
     newNews[index] = value;
     const updatedContent = { ...content, cafeNews: newNews };
-    setContent(updatedContent);
-  };
-
-  const handleTimeChange = (newTime: string) => {
-    if (!content) return;
-    
-    console.log('Current content:', content);
-    console.log('Updating time to:', newTime);
-    
-    const updatedContent = {
-      ...content,
-      lastUpdated: newTime
-    };
-    
-    console.log('Updated content:', updatedContent);
     setContent(updatedContent);
   };
 
@@ -291,9 +246,8 @@ export default function AdminPage() {
                 </label>
                 <input
                   type="text"
-                  value={content.lastUpdated || ''}
-                  onChange={(e) => handleTimeChange(e.target.value)}
-                  placeholder="Enter time (e.g., 7:08 AM)"
+                  value={content.lastUpdated}
+                  onChange={(e) => updateContent({ ...content, lastUpdated: e.target.value })}
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
@@ -335,8 +289,7 @@ export default function AdminPage() {
                         i.id === item.id ? { ...i, photo: url } : i
                       );
                       updateContent({ ...content, menuItems: newItems });
-                    }}
-                    currentPhotoUrl={item.photo}
+                    }} 
                   />
                   <button
                     onClick={() => removeMenuItem(item.id)}
@@ -375,21 +328,12 @@ export default function AdminPage() {
                     onChange={(e) => {
                       const newNews = [...content.cafeNews];
                       newNews[index] = e.target.value;
-                      updateContent({
-                        ...content,
-                        cafeNews: newNews
-                      });
+                      updateContent({ ...content, cafeNews: newNews });
                     }}
                     className="border rounded px-2 py-1 flex-grow"
                   />
                   <button
-                    onClick={() => {
-                      const newNews = content.cafeNews.filter((_, i) => i !== index);
-                      updateContent({
-                        ...content,
-                        cafeNews: newNews
-                      });
-                    }}
+                    onClick={() => removeNewsItem(index)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded"
                   >
                     Remove
@@ -405,15 +349,7 @@ export default function AdminPage() {
                   className="border rounded px-2 py-1 flex-grow"
                 />
                 <button
-                  onClick={() => {
-                    if (newNewsItem.trim()) {
-                      updateContent({
-                        ...content,
-                        cafeNews: [...content.cafeNews, newNewsItem.trim()]
-                      });
-                      setNewNewsItem('');
-                    }
-                  }}
+                  onClick={addNewsItem}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   Add News
