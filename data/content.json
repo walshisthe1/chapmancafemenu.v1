@@ -1,0 +1,44 @@
+{
+  "title": "Chapman Cafeteria",
+  "menuTitle": "Cafeteria Menu",
+  "mealOptionsTitle": "Meal Options",
+  "menuItems": [
+    {
+      "id": 1,
+      "name": "Grilled Chicken",
+      "demand": 5,
+      "photo": "/uploads/item-1-1733464454222-116866988.jpeg"
+    },
+    {
+      "id": 2,
+      "name": "Vegetarian Pasta",
+      "demand": 3,
+      "photo": "/uploads/item-2-1733464458138-973577665.jpeg"
+    },
+    {
+      "id": 3,
+      "name": "Taco Bar",
+      "demand": 8,
+      "photo": "/uploads/item-3-1733464462751-826990392.jpeg"
+    }
+  ],
+  "cafeNews": [
+    "New vegan options available!",
+    "Chef's special: Sushi Friday"
+  ],
+  "date": "Thursday, December 5",
+  "lastUpdated": "9:54:23 PM",
+  "iceCreamStatus": {
+    "isWorking": true,
+    "flavors": [
+      {
+        "name": "Vanilla",
+        "available": true
+      },
+      {
+        "name": "Chocolate",
+        "available": true
+      }
+    ]
+  }
+}

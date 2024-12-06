@@ -23,14 +23,18 @@ const CafeteriaMenu: FC = () => {
   const [lastUpdated, setLastUpdated] = useState('');
 
   useEffect(() => {
-    const content = getPageContent();
-    if (content) {
-      setMenuItems(content.menuItems);
-      setMenuTitle(content.menuTitle);
-      setMealOptionsTitle(content.mealOptionsTitle);
-      setDate(content.date);
-      setLastUpdated(content.lastUpdated);
-    }
+    const fetchContent = async () => {
+      const content = await getPageContent();
+      if (content) {
+        setMenuItems(content.menuItems);
+        setMenuTitle(content.menuTitle);
+        setMealOptionsTitle(content.mealOptionsTitle);
+        setDate(content.date);
+        setLastUpdated(content.lastUpdated);
+      }
+    };
+
+    fetchContent();
   }, []);
 
   return (

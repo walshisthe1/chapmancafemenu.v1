@@ -15,10 +15,14 @@ const FoodGallery: FC = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   useEffect(() => {
-    const content = getPageContent();
-    if (content) {
-      setMenuItems(content.menuItems);
-    }
+    const fetchContent = async () => {
+      const content = await getPageContent();
+      if (content) {
+        setMenuItems(content.menuItems);
+      }
+    };
+
+    fetchContent();
   }, []);
 
   return (

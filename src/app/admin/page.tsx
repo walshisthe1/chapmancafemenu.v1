@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { getPageContent } from '@/utils/content';
+import { getPageContent, savePageContent } from '@/utils/content';
 
 interface MenuItem {
   id: number;
@@ -61,13 +61,7 @@ export default function AdminPage() {
   const [content, setContent] = useState<PageContent | null>(null);
 
   useEffect(() => {
-    try {
-      const savedContent = localStorage.getItem('pageContent');
-      setContent(savedContent ? JSON.parse(savedContent) : getInitialContent());
-    } catch (error) {
-      console.error('Error loading content:', error);
-      setContent(getInitialContent());
-    }
+    getPageContent().then(data => setContent(data));
   }, []);
 
   if (!content) {
@@ -95,23 +89,15 @@ export default function AdminPage() {
     }
   };
 
-  const handleSave = () => {
-    if (!content) return;
-    
-    const updatedContent = {
-      ...content,
-      lastUpdated: new Date().toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit', 
-        timeZoneName: 'short' 
-      })
-    };
-    
-    try {
-      localStorage.setItem('pageContent', JSON.stringify(updatedContent));
-      setContent(updatedContent);
-    } catch (error) {
-      console.error('Failed to save content:', error);
+  const handleSave = async () => {
+    if (content) {
+      try {
+        const savedContent = await savePageContent(content);
+        setContent(savedContent);
+        alert('Changes saved successfully!');
+      } catch (error) {
+        alert('Failed to save changes');
+      }
     }
   };
 
@@ -155,17 +141,36 @@ export default function AdminPage() {
     });
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
+  const handlePhotoUpload = async (itemId: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newItems = content.menuItems.map(item =>
-          item.id === id ? { ...item, photo: reader.result as string } : item
+    if (!file) return;
+
+    try {
+      // Create FormData
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('itemId', itemId.toString());
+
+      // Upload photo
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const { photoUrl } = await response.json();
+
+      // Update menu item with new photo URL
+      if (content) {
+        const updatedItems = content.menuItems.map((item) =>
+          item.id === itemId ? { ...item, photo: photoUrl } : item
         );
-        updateContent({ ...content, menuItems: newItems });
-      };
-      reader.readAsDataURL(file);
+        setContent({ ...content, menuItems: updatedItems });
+      }
+    } catch (error) {
+      console.error('Failed to upload photo:', error);
+      alert('Failed to upload photo');
     }
   };
 
@@ -306,7 +311,7 @@ export default function AdminPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handlePhotoUpload(e, item.id)}
+                    onChange={(e) => handlePhotoUpload(item.id, e)}
                     className="border rounded px-2 py-1"
                   />
                   <button

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getPageContent } from '@/utils/content';
 import Link from 'next/link';
 
 interface MenuItem {
@@ -24,49 +25,24 @@ interface PageContent {
   };
 }
 
-const initialContent: PageContent = {
-  title: "Chapman Cafeteria",
-  menuTitle: "Cafeteria Menu",
-  mealOptionsTitle: "Meal Options",
-  menuItems: [
-    { id: 1, name: 'Grilled Chicken', demand: 5 },
-    { id: 2, name: 'Vegetarian Pasta', demand: 3 },
-    { id: 3, name: 'Taco Bar', demand: 8 },
-    { id: 4, name: 'Salad Station', demand: 2 },
-    { id: 5, name: 'Pizza', demand: 6 },
-  ],
-  cafeNews: [
-    'New vegan options available starting next week!',
-    'Chef\'s special: Sushi night on Friday',
-    'Upcoming food waste reduction campaign',
-  ],
-  date: 'Tuesday, December 3',
-  lastUpdated: '8:09 PM PST',
-  iceCreamStatus: {
-    isWorking: true,
-    flavors: [
-      { name: 'Vanilla', available: true },
-      { name: 'Chocolate', available: true },
-      { name: 'Strawberry', available: true },
-    ],
-  },
-};
-
 export default function HomePage() {
-  const [content, setContent] = useState<PageContent>(initialContent);
+  const [content, setContent] = useState<PageContent | null>(null);
 
   useEffect(() => {
-    const savedContent = localStorage.getItem('pageContent');
-    if (savedContent) {
-      setContent(JSON.parse(savedContent));
-    }
+    getPageContent().then(data => setContent(data));
   }, []);
+
+  if (!content) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-white">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-gray-800">{content.title}</h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-4xl font-bold text-gray-800">{content.title}</h1>
+          </div>
           <span className="text-sm text-gray-600">
             Last updated: {content.lastUpdated}
           </span>
@@ -153,7 +129,7 @@ export default function HomePage() {
             </div>
             <div className="border rounded-b-lg p-4 bg-white shadow-sm">
               <div className="flex items-center mb-3">
-                <span className="font-medium mr-2 text-sm">Ice cream machine is</span>
+                <span className="font-medium mr-2 text-lg">Ice cream machine is</span>
                 <span className={`px-2 py-1 rounded text-sm font-medium ${
                   content.iceCreamStatus.isWorking 
                     ? 'bg-green-100 text-green-800' 
@@ -165,7 +141,7 @@ export default function HomePage() {
               
               {content.iceCreamStatus.isWorking && (
                 <div>
-                  <p className="font-medium mb-2 text-sm">Available Flavors:</p>
+                  <p className="font-medium mb-2 text-md">Available Flavors:</p>
                   <div className="grid grid-cols-2 gap-2">
                     {content.iceCreamStatus.flavors.map((flavor) => (
                       <div key={flavor.name} className="flex items-center">

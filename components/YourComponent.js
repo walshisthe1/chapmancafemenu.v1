@@ -15,6 +15,10 @@ function YourComponent() {
   };
 
   return (
-    // Your component JSX
+    <div>
+      <button onClick={handleSolanaOperation}>
+        Perform Solana Operation
+      </button>
+    </div>
   );
-} 
+}
