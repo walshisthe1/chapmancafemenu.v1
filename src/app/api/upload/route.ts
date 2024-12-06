@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import { headers } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -14,15 +13,16 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
+    // Generate a unique filename with timestamp
+    const timestamp = Date.now();
+    const filename = `${timestamp}-${file.name}`;
+
     // Upload to Vercel Blob Storage
-    const blob = await put(file.name, file, {
+    const blob = await put(filename, file, {
       access: 'public',
     });
 
-    return NextResponse.json({
-      success: true,
-      url: blob.url
-    });
+    return NextResponse.json(blob);
   } catch (error: any) {
     console.error('Upload error:', error);
     return NextResponse.json(
@@ -32,8 +32,4 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}; 
+// No need for bodyParser config in App Router 
