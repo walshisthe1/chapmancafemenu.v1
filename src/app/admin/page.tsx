@@ -93,15 +93,7 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (content) {
       try {
-        const updatedContent = {
-          ...content,
-          lastUpdated: new Date().toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit', 
-            hour12: true 
-          })
-        };
-        const savedContent = await savePageContent(updatedContent);
+        const savedContent = await savePageContent(content);
         setContent(savedContent);
         alert('Changes saved successfully!');
       } catch (error) {
@@ -135,28 +127,18 @@ export default function AdminPage() {
 
   const addNewsItem = () => {
     if (newNewsItem.trim()) {
-      const updatedContent = {
+      updateContent({
         ...content,
         cafeNews: [...content.cafeNews, newNewsItem.trim()]
-      };
-      setContent(updatedContent);
-      setNewNewsItem('');
-      savePageContent(updatedContent).catch(error => {
-        console.error('Failed to save news:', error);
-        alert('Failed to save news item');
       });
+      setNewNewsItem('');
     }
   };
 
   const removeNewsItem = (index: number) => {
-    const updatedContent = {
+    updateContent({
       ...content,
       cafeNews: content.cafeNews.filter((_, i) => i !== index)
-    };
-    setContent(updatedContent);
-    savePageContent(updatedContent).catch(error => {
-      console.error('Failed to remove news:', error);
-      alert('Failed to remove news item');
     });
   };
 
@@ -262,9 +244,12 @@ export default function AdminPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Last Updated
                 </label>
-                <div className="border rounded px-2 py-1 w-full bg-gray-50">
-                  {content.lastUpdated}
-                </div>
+                <input
+                  type="text"
+                  value={content.lastUpdated}
+                  onChange={(e) => updateContent({ ...content, lastUpdated: e.target.value })}
+                  className="border rounded px-2 py-1 w-full"
+                />
               </div>
             </div>
           </div>
@@ -340,8 +325,11 @@ export default function AdminPage() {
                   <input
                     type="text"
                     value={news}
-                    onChange={(e) => handleNewsItemChange(index, e.target.value)}
-                    onBlur={() => savePageContent(content)}
+                    onChange={(e) => {
+                      const newNews = [...content.cafeNews];
+                      newNews[index] = e.target.value;
+                      updateContent({ ...content, cafeNews: newNews });
+                    }}
                     className="border rounded px-2 py-1 flex-grow"
                   />
                   <button
