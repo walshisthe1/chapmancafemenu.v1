@@ -1,63 +1,55 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { put, list, del } from '@vercel/blob';
 
-// Helper function to get the content file path
-const getContentPath = () => {
-  return path.join(process.cwd(), 'content.json');
-};
-
-// GET handler
 export async function GET() {
   try {
-    const filePath = getContentPath();
+    const defaultContent = {
+      title: "Chapman Cafeteria",
+      menuTitle: "Cafeteria Menu",
+      mealOptionsTitle: "Meal Options",
+      menuItems: [
+        { id: 1, name: 'Grilled Chicken', demand: 5 },
+        { id: 2, name: 'Vegetarian Pasta', demand: 3 },
+        { id: 3, name: 'Taco Bar', demand: 8 },
+      ],
+      cafeNews: [
+        'New vegan options available!',
+        'Chef\'s special: Sushi Friday',
+      ],
+      date: new Date().toLocaleDateString(),
+      lastUpdated: new Date().toLocaleTimeString(),
+      iceCreamStatus: {
+        isWorking: true,
+        flavors: [
+          { name: 'Vanilla', available: true },
+          { name: 'Chocolate', available: true },
+        ],
+      },
+    };
+
+    const { blobs } = await list();
+    const contentBlob = blobs.find(blob => blob.pathname === 'content.json');
     
-    try {
-      const content = await fs.readFile(filePath, 'utf8');
-      return NextResponse.json(JSON.parse(content));
-    } catch (error) {
-      // If file doesn't exist, return default content
-      const defaultContent = {
-        title: "Chapman Cafeteria",
-        menuTitle: "Cafeteria Menu",
-        mealOptionsTitle: "Meal Options",
-        menuItems: [
-          { id: 1, name: 'Grilled Chicken', demand: 5 },
-          { id: 2, name: 'Vegetarian Pasta', demand: 3 },
-          { id: 3, name: 'Taco Bar', demand: 8 },
-        ],
-        cafeNews: [
-          'New vegan options available!',
-          'Chef\'s special: Sushi Friday',
-        ],
-        date: new Date().toLocaleDateString(),
-        lastUpdated: new Date().toLocaleTimeString(),
-        iceCreamStatus: {
-          isWorking: true,
-          flavors: [
-            { name: 'Vanilla', available: true },
-            { name: 'Chocolate', available: true },
-          ],
-        },
-      };
-      
-      // Save default content
-      await fs.writeFile(filePath, JSON.stringify(defaultContent, null, 2));
+    if (!contentBlob) {
+      const { url } = await put('content.json', JSON.stringify(defaultContent), {
+        access: 'public',
+      });
       return NextResponse.json(defaultContent);
     }
+
+    const response = await fetch(contentBlob.url);
+    const content = await response.json();
+    return NextResponse.json(content);
   } catch (error) {
     console.error('Error reading content:', error);
     return NextResponse.json({ error: 'Failed to read content' }, { status: 500 });
   }
 }
 
-// POST handler
 export async function POST(request: Request) {
   try {
     const content = await request.json();
-    console.log('Received content:', content);
-
-    // Validate content structure
+    
     if (!content || typeof content !== 'object') {
       return NextResponse.json(
         { error: 'Invalid content format' },
@@ -66,20 +58,23 @@ export async function POST(request: Request) {
     }
 
     try {
-      // Save the content
-      await fs.writeFile(
-        getContentPath(),
-        JSON.stringify(content, null, 2),
-        'utf8'
-      );
-      
-      // Read back and return the saved content
-      const savedContent = await fs.readFile(getContentPath(), 'utf8');
-      return NextResponse.json(JSON.parse(savedContent));
+      // Delete old content if it exists
+      const { blobs } = await list();
+      const oldContent = blobs.find(blob => blob.pathname === 'content.json');
+      if (oldContent) {
+        await del(oldContent.url);
+      }
+
+      // Save new content
+      const { url } = await put('content.json', JSON.stringify(content), {
+        access: 'public',
+      });
+
+      return NextResponse.json(content);
     } catch (writeError) {
-      console.error('Error writing file:', writeError);
+      console.error('Error writing to blob:', writeError);
       return NextResponse.json(
-        { error: 'Failed to write content to file' },
+        { error: 'Failed to save content' },
         { status: 500 }
       );
     }
