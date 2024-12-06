@@ -35,9 +35,9 @@ const CafeteriaMenu: FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="flex justify-between items-center bg-orange-500 text-white p-4">
-        <h2 className="text-xl font-bold">{menuTitle}</h2>
-        <span className="text-xl">{date}</span>
+      <div className="flex justify-between items-center bg-orange-500 p-4">
+        <h2 className="text-xl font-bold text-white !important">{menuTitle}</h2>
+        <span className="text-xl text-white !important">{date}</span>
       </div>
       
       <div className="p-6">

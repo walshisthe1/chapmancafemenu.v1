@@ -1,0 +1,27 @@
+/* Force black text everywhere */
+:root {
+  color-scheme: light !important;
+}
+
+* {
+  color: black !important;
+  background-color: white !important;
+}
+
+[class*="text-"] {
+  color: black !important;
+}
+
+/* Specific overrides for common Next.js and Tailwind classes */
+.text-white,
+[class*="text-white"] {
+  color: black !important;
+}
+
+/* Dark mode override */
+@media (prefers-color-scheme: dark) {
+  * {
+    color: black !important;
+    background-color: white !important;
+  }
+} 

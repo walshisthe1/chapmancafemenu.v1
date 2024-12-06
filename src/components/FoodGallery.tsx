@@ -23,8 +23,8 @@ const FoodGallery: FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden mt-8">
-      <div className="bg-orange-500 text-white p-4">
-        <h2 className="text-xl font-bold">Today&apos;s Menu Photos</h2>
+      <div className="bg-orange-500 p-4">
+        <h2 className="text-xl font-bold text-black">Today&apos;s Menu Photos</h2>
       </div>
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
