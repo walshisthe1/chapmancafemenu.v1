@@ -254,7 +254,11 @@ export default function AdminPage() {
                 <input
                   type="text"
                   value={content.lastUpdated}
-                  onChange={(e) => updateContent({ ...content, lastUpdated: e.target.value })}
+                  onChange={(e) => updateContent({ 
+                    ...content, 
+                    lastUpdated: e.target.value 
+                  })}
+                  placeholder="Enter time (e.g., 7:08 AM)"
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
